@@ -1,6 +1,8 @@
+// src/pages/DiaryDetailPage.jsx  ← 교체
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { diaryService } from "../entities/diary/model";
+import { PageShell, Card } from "../widgets/ui/ui";
 
 export const DiaryDetailPage = () => {
   const { date } = useParams(); // /diary/date/:date
@@ -25,52 +27,42 @@ export const DiaryDetailPage = () => {
     return () => (alive = false);
   }, [date]);
 
-  if (pending)
+  if (pending) {
     return (
-      <div className="min-h-screen flex flex-col pb-16">
-        <header className="p-4 border-b">
-          <Link to="/diary" className="text-sm">
-            ← 목록
-          </Link>
-        </header>
-        <main className="p-4">로딩…</main>
-      </div>
+      <PageShell title="감정일기">
+        <Card className="p-4 animate-pulse">
+          <div className="h-4 w-28 bg-gray-200 rounded mb-2" />
+          <div className="h-4 w-3/4 bg-gray-200 rounded" />
+        </Card>
+      </PageShell>
     );
+  }
 
-  if (err || !diary)
+  if (err || !diary) {
     return (
-      <div className="min-h-screen flex flex-col pb-16">
-        <header className="p-4 border-b">
-          <Link to="/diary" className="text-sm">
-            ← 목록
-          </Link>
-        </header>
-        <main className="p-4">
-          <p className="text-sm">{err || "해당 날짜의 일기가 없습니다."}</p>
-        </main>
-      </div>
+      <PageShell title="감정일기">
+        <p className="text-sm">{err || "해당 날짜의 일기가 없습니다."}</p>
+        <Link to="/diary" className="underline text-sm mt-2 inline-block">
+          ← 목록으로
+        </Link>
+      </PageShell>
     );
+  }
 
   const dateLabel =
     (diary.createdAt && new Date(diary.createdAt).toLocaleDateString()) || date;
 
   return (
-    <div className="min-h-screen flex flex-col pb-16">
-      <header className="p-4 border-b flex items-center gap-2">
-        <Link to="/diary" className="text-sm">
-          ← 목록
+    <PageShell title={dateLabel}>
+      <Card className="p-4">
+        <h2 className="font-medium">일기</h2>
+        <p className="mt-2 whitespace-pre-wrap text-gray-800">
+          {diary.content || "(내용 없음)"}
+        </p>
+        <Link to="/diary" className="underline text-sm mt-3 inline-block">
+          ← 목록으로
         </Link>
-        <h1 className="text-lg font-medium">{dateLabel}</h1>
-      </header>
-
-      <main className="p-4 space-y-4">
-        <section className="border rounded p-3">
-          <h2 className="font-medium">일기</h2>
-          <p className="mt-2 whitespace-pre-wrap">
-            {diary.content || "(내용 없음)"}
-          </p>
-        </section>
-      </main>
-    </div>
+      </Card>
+    </PageShell>
   );
 };

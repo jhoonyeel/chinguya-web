@@ -1,8 +1,9 @@
-// src/pages/ChatPage.jsx
+// src/pages/ChatPage.jsx  ← 교체
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LS } from "../shared/lib/storage";
 import { chatService } from "../entities/chat/model";
+import { PageShell, Button } from "../widgets/ui/ui";
 
 export const ChatPage = () => {
   const [messages, setMessages] = useState(() =>
@@ -18,12 +19,10 @@ export const ChatPage = () => {
   const [sessionId, setSessionId] = useState(null);
   const nav = useNavigate();
 
-  // 대화 로그 로컬 보관
   useEffect(() => {
     LS.set("chatMessages", messages);
   }, [messages]);
 
-  // 최초 진입 시 세션 생성
   useEffect(() => {
     (async () => {
       try {
@@ -69,18 +68,13 @@ export const ChatPage = () => {
     }
   };
 
-  // 세션 종료 → 서버가 일기를 생성 → 오늘 날짜 상세로 이동
   const makeDiary = async () => {
     if (!sessionId || loading) return;
     setLoading(true);
     try {
       await chatService.end(sessionId);
-
-      // 서버가 오늘 일기를 생성하므로 YYYY-MM-DD로 라우팅
       const today = new Date().toISOString().slice(0, 10);
       nav(`/diary/date/${today}`, { replace: true });
-
-      // 새 대화를 위해 세션 재생성
       const sid = await chatService.createSession();
       setSessionId(sid);
     } catch {
@@ -94,55 +88,48 @@ export const ChatPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col pb-16">
-      <header className="p-4 border-b">
-        <h1 className="text-lg font-medium">챗봇 대화</h1>
-      </header>
-
-      {/* 본문 */}
-      <main className="flex-1 p-4 space-y-3 overflow-auto">
+    <PageShell title="챗봇 대화">
+      <div className="space-y-3">
         {messages.map((m, i) => (
           <div
             key={i}
             className={`max-w-[85%] ${m.role === "user" ? "ml-auto" : ""}`}
           >
-            <div className="border rounded p-3 whitespace-pre-wrap">
+            <div
+              className={`rounded-2xl px-3 py-2 whitespace-pre-wrap ${
+                m.role === "user" ? "bg-blue-600 text-white" : "bg-white border"
+              }`}
+            >
               {m.text}
             </div>
           </div>
         ))}
         {loading && <p className="text-sm">요청 처리 중…</p>}
-      </main>
+      </div>
 
-      {/* 하단 입력바: 전송 + 감정일기 생성 버튼 나란히 */}
-      <div className="p-3 border-t fixed bottom-12 left-0 right-0 bg-white">
+      <div className="mt-4 border-t py-3 sticky bottom-[calc(3rem+env(safe-area-inset-bottom))] bg-gray-50">
         <div className="flex gap-2">
           <input
-            className="flex-1 border rounded p-3"
+            className="flex-1 border rounded-lg p-3 bg-white"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="메시지를 입력하세요"
             onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
           />
-          <button
-            className="border rounded px-4"
-            onClick={send}
-            disabled={loading}
-            aria-label="메시지 전송"
-          >
+          <Button onClick={send} disabled={loading} aria-label="메시지 전송">
             전송
-          </button>
-          <button
-            className="border rounded p-2 bg-white fixed bottom-32 right-4"
+          </Button>
+          <Button
+            variant="outline"
             onClick={makeDiary}
             disabled={loading || !sessionId}
             aria-label="감정일기 생성"
             title="현재 대화를 바탕으로 감정일기 생성"
           >
             일기 생성
-          </button>
+          </Button>
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 };

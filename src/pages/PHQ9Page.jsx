@@ -1,8 +1,9 @@
-// src/pages/PHQ9Page.jsx
+// src/pages/PHQ9Page.jsx  ← 교체
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../shared/auth/AuthContext";
 import { checkupStore } from "../shared/lib/checkup";
+import { PageShell, Card, Button } from "../widgets/ui/ui";
 
 const OPTIONS = [
   { label: "없음", value: 0 },
@@ -60,9 +61,7 @@ export const PHQ9Page = () => {
   const handleNextFromPHQ2 = () => {
     const sum2 = (answers[0] ?? 0) + (answers[1] ?? 0);
     if (sum2 === 0) {
-      // PHQ-2 음성으로 조기 종료 → 완료 처리
       if (user?.id) checkupStore.setCheckedNow(user.id);
-      // 음성: 결과로 바로 이동(필요 시 '전체 진행' 버튼 제공)
       setStage("result");
     } else {
       setStage("phq9");
@@ -71,7 +70,6 @@ export const PHQ9Page = () => {
 
   const handleSubmitFull = () => {
     if (!answeredAll) return;
-    // 9문항 완료 → 완료 처리
     if (user?.id) checkupStore.setCheckedNow(user.id);
     setStage("result");
   };
@@ -79,91 +77,80 @@ export const PHQ9Page = () => {
   const risk = (answers[8] ?? 0) >= 1;
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="p-4 border-b">
-        <h1 className="text-lg font-semibold">PHQ-9 자가 점검</h1>
-        <p className="text-sm text-gray-600 mt-1">
-          최근 2주를 기준으로 응답해 주세요. 결과는 참고용이며 진단이 아닙니다.
-        </p>
-      </header>
-
+    <PageShell
+      title="PHQ-9 자가 점검"
+      right={<span className="text-xs text-gray-500">최근 2주 기준</span>}
+    >
       {stage !== "result" && (
-        <div className="p-4">
+        <div>
           {stage === "phq2" && (
             <div className="mb-3 text-sm text-gray-700">
               먼저 2문항(PHQ-2)을 확인한 뒤 필요하면 나머지 문항을 이어갑니다.
             </div>
           )}
 
-          <ol className="space-y-6">
+          <ol className="space-y-4">
             {QUESTIONS.slice(qRange[0], qRange[1] + 1).map((q, idx) => {
               const qi = qRange[0] + idx;
               return (
-                <li key={qi} className="border rounded p-4">
-                  <p className="mb-3">
-                    {qi + 1}. {q}
-                  </p>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {OPTIONS.map((opt) => (
-                      <label
-                        key={opt.value}
-                        className={`flex items-center gap-2 border rounded p-2 cursor-pointer ${
-                          answers[qi] === opt.value
-                            ? "ring-2 ring-blue-500 border-blue-500"
-                            : ""
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name={`q-${qi}`}
-                          className="sr-only"
-                          checked={answers[qi] === opt.value}
-                          onChange={() => onChange(qi, opt.value)}
-                        />
-                        <span>{opt.label}</span>
-                      </label>
-                    ))}
-                  </div>
+                <li key={qi}>
+                  <Card className="p-4">
+                    <p className="mb-3">
+                      {qi + 1}. {q}
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {OPTIONS.map((opt) => (
+                        <label
+                          key={opt.value}
+                          className={`flex items-center gap-2 border rounded p-2 cursor-pointer ${
+                            answers[qi] === opt.value
+                              ? "ring-2 ring-blue-500 border-blue-500"
+                              : ""
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name={`q-${qi}`}
+                            className="sr-only"
+                            checked={answers[qi] === opt.value}
+                            onChange={() => onChange(qi, opt.value)}
+                          />
+                          <span>{opt.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </Card>
                 </li>
               );
             })}
           </ol>
 
-          {/* Actions */}
           <div className="mt-6 flex flex-wrap gap-2">
             {stage === "phq2" ? (
               <>
-                <button
-                  className="px-4 py-2 border rounded"
+                <Button
                   onClick={handleNextFromPHQ2}
                   disabled={answers[0] == null || answers[1] == null}
                 >
                   계속
-                </button>
-                <button
-                  className="px-4 py-2 border rounded"
-                  onClick={() => setStage("phq9")}
-                >
+                </Button>
+                <Button variant="outline" onClick={() => setStage("phq9")}>
                   9문항 모두 답변하기
-                </button>
+                </Button>
               </>
             ) : (
-              <button
-                className="px-4 py-2 border rounded"
-                onClick={handleSubmitFull}
-                disabled={!answeredAll}
-              >
+              <Button onClick={handleSubmitFull} disabled={!answeredAll}>
                 결과 보기
-              </button>
+              </Button>
             )}
           </div>
         </div>
       )}
 
       {stage === "result" && (
-        <main className="p-4 space-y-4">
+        <main className="space-y-4">
           {risk && (
-            <div className="border border-red-300 bg-red-50 text-red-700 p-3 rounded">
+            <div className="border border-red-300 bg-red-50 text-red-700 p-3 rounded-lg">
               문항 9에 응답하셨습니다.{" "}
               <b>긴급 위험이 느껴지면 119 또는 가까운 응급실에 연락</b>해
               주세요. 도움이 필요하면 <b>국번없이 1393</b>(자살예방상담) 등
@@ -171,7 +158,7 @@ export const PHQ9Page = () => {
             </div>
           )}
 
-          <section className="border rounded p-4">
+          <Card className="p-4">
             <h2 className="font-semibold mb-2">결과</h2>
             <p className="text-2xl font-bold">
               총점 {sum} / 27{" "}
@@ -180,28 +167,26 @@ export const PHQ9Page = () => {
             <p className="mt-1 text-gray-700">
               범주: <b>{category(sum)}</b>
             </p>
-            <p className="mt-2 text-sm text-gray-600">
+            <div aria-hidden className="h-2 bg-gray-200 rounded mt-3">
+              <div
+                className="h-2 bg-blue-600 rounded"
+                style={{ width: `${percent}%` }}
+              />
+            </div>
+            <p className="mt-3 text-sm text-gray-600">
               이 결과는 자기점검용 참고 자료이며 의학적 진단이 아닙니다.
               어려움이 지속되면 전문가 상담을 권합니다.
             </p>
-          </section>
+          </Card>
 
           <div className="flex gap-2">
-            <button
-              className="px-4 py-2 border rounded"
-              onClick={() => setStage("phq9")}
-            >
+            <Button variant="outline" onClick={() => setStage("phq9")}>
               수정하기
-            </button>
-            <button
-              className="px-4 py-2 border rounded"
-              onClick={() => nav("/chat")}
-            >
-              챗봇과 이어서 대화하기
-            </button>
+            </Button>
+            <Button onClick={() => nav("/chat")}>챗봇과 이어서 대화하기</Button>
           </div>
         </main>
       )}
-    </div>
+    </PageShell>
   );
 };
