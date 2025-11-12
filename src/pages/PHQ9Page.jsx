@@ -1,4 +1,4 @@
-// src/pages/PHQ9Page.jsx  ← 교체
+// src/pages/PHQ9Page.jsx  ← 교체(하단 버튼 단순화, sticky 제거)
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../shared/auth/AuthContext";
@@ -35,7 +35,7 @@ function category(score) {
 export const PHQ9Page = () => {
   const nav = useNavigate();
   const { user } = useAuth();
-  const [answers, setAnswers] = useState(() => Array(9).fill(null)); // null=미응답
+  const [answers, setAnswers] = useState(() => Array(9).fill(null));
   const [stage, setStage] = useState("phq2"); // 'phq2' | 'phq9' | 'result'
 
   const sum = useMemo(
@@ -43,13 +43,12 @@ export const PHQ9Page = () => {
     [answers]
   );
   const percent = Math.round((sum / 27) * 100);
-
   const answeredAll = useMemo(
     () => answers.every((v) => typeof v === "number"),
     [answers]
   );
-
   const qRange = stage === "phq2" ? [0, 1] : [0, 8];
+  const risk = (answers[8] ?? 0) >= 1;
 
   const onChange = (qi, v) =>
     setAnswers((prev) => {
@@ -74,18 +73,18 @@ export const PHQ9Page = () => {
     setStage("result");
   };
 
-  const risk = (answers[8] ?? 0) >= 1;
-
   return (
     <PageShell
-      title="PHQ-9 자가 점검"
+      title="우울 자가 점검"
       right={<span className="text-xs text-gray-500">최근 2주 기준</span>}
+      mainScrollable
+      mainClassName="px-4 py-3"
     >
       {stage !== "result" && (
         <div>
           {stage === "phq2" && (
             <div className="mb-3 text-sm text-gray-700">
-              먼저 2문항(PHQ-2)을 확인한 뒤 필요하면 나머지 문항을 이어갑니다.
+              먼저 2문항을 확인한 뒤, 필요하면 나머지 문항을 이어갑니다.
             </div>
           )}
 
@@ -125,7 +124,8 @@ export const PHQ9Page = () => {
             })}
           </ol>
 
-          <div className="mt-6 flex flex-wrap gap-2">
+          {/* 하단 액션: 두 단계 동일 형태(세로선 없음) */}
+          <div className="mt-6 flex flex-wrap gap-2 pb-2">
             {stage === "phq2" ? (
               <>
                 <Button
@@ -139,16 +139,21 @@ export const PHQ9Page = () => {
                 </Button>
               </>
             ) : (
-              <Button onClick={handleSubmitFull} disabled={!answeredAll}>
-                결과 보기
-              </Button>
+              <>
+                <Button variant="outline" onClick={() => setStage("phq2")}>
+                  뒤로
+                </Button>
+                <Button onClick={handleSubmitFull} disabled={!answeredAll}>
+                  결과 보기
+                </Button>
+              </>
             )}
           </div>
         </div>
       )}
 
       {stage === "result" && (
-        <main className="space-y-4">
+        <div className="space-y-4">
           {risk && (
             <div className="border border-red-300 bg-red-50 text-red-700 p-3 rounded-lg">
               문항 9에 응답하셨습니다.{" "}
@@ -179,13 +184,13 @@ export const PHQ9Page = () => {
             </p>
           </Card>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 pb-2">
             <Button variant="outline" onClick={() => setStage("phq9")}>
               수정하기
             </Button>
             <Button onClick={() => nav("/chat")}>챗봇과 이어서 대화하기</Button>
           </div>
-        </main>
+        </div>
       )}
     </PageShell>
   );

@@ -1,18 +1,36 @@
-// src/widgets/ui/ui.jsx  ← 새 파일
+// src/widgets/ui/ui.jsx  ← 교체
 function cn(...xs) {
   return xs.filter(Boolean).join(" ");
 }
 
-export function PageShell({ title, right, children }) {
+/**
+ * PageShell
+ * - 헤더는 sticky, 본문은 페이지별로 패딩/스크롤 제어
+ * - mainScrollable=true 이면 본문이 남은 높이를 차지하며 내부 스크롤됨
+ */
+export function PageShell({
+  title,
+  right,
+  children,
+  mainClassName = "px-4 py-3",
+  mainScrollable = false,
+}) {
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-[100dvh] flex flex-col bg-gray-50">
       <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b">
         <div className="mx-auto max-w-screen-sm px-4 h-14 flex items-center justify-between">
           <h1 className="text-base font-semibold">{title}</h1>
           {right}
         </div>
       </header>
-      <main className="mx-auto max-w-screen-sm w-full px-4 py-3">
+
+      <main
+        className={cn(
+          "mx-auto max-w-screen-sm w-full",
+          mainClassName,
+          mainScrollable && "flex-1 min-h-0 overflow-y-auto"
+        )}
+      >
         {children}
       </main>
     </div>

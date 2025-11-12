@@ -1,22 +1,39 @@
 // src/pages/DiaryListPage.jsx  ← 교체
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { diaryService } from "../entities/diary/model";
 import { PageShell, Card, Button } from "../widgets/ui/ui";
 
 export const DiaryListPage = () => {
-  const [days, setDays] = useState(7);
+  const [sp, setSp] = useSearchParams();
+  const daysFromQS = Number(sp.get("days")) || 7;
+  const [days, setDays] = useState(daysFromQS);
+
   const [items, setItems] = useState([]);
   const [pending, setPending] = useState(true);
   const [err, setErr] = useState("");
 
+  // days ↔︎ ?days= 동기화
+  useEffect(() => {
+    const n = Math.max(1, Math.min(30, Number(days) || 7));
+    if (Number(sp.get("days")) !== n) {
+      const next = new URLSearchParams(sp);
+      next.set("days", String(n));
+      setSp(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [days]);
+
+  // 목록 조회
   useEffect(() => {
     let alive = true;
+    const n = Math.max(1, Math.min(30, Number(sp.get("days")) || 7));
+    setDays(n);
     (async () => {
       setPending(true);
       setErr("");
       try {
-        const { diaries } = await diaryService.fetchWeekly(days);
+        const { diaries } = await diaryService.fetchWeekly(n);
         if (alive) setItems(diaries);
       } catch {
         if (alive) setErr("일기 목록을 불러오지 못했습니다.");
@@ -24,11 +41,13 @@ export const DiaryListPage = () => {
         if (alive) setPending(false);
       }
     })();
-    return () => (alive = false);
-  }, [days]);
+    return () => {
+      alive = false;
+    };
+  }, [sp]);
 
   return (
-    <PageShell title="감정일기">
+    <PageShell title="감정일기" mainScrollable mainClassName="px-4 py-3">
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <label className="text-sm">조회 기간(일)</label>
@@ -81,7 +100,7 @@ export const DiaryListPage = () => {
 
         <ul className="space-y-2">
           {items.map((d) => {
-            const date = d.createdAt?.slice(0, 10); // YYYY-MM-DD
+            const date = d.createdAt?.slice(0, 10);
             const preview =
               (d.content || "").length > 80
                 ? d.content.slice(0, 80) + "…"

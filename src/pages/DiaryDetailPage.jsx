@@ -29,7 +29,7 @@ export const DiaryDetailPage = () => {
 
   if (pending) {
     return (
-      <PageShell title="감정일기">
+      <PageShell title="감정일기" mainScrollable mainClassName="px-4 py-3">
         <Card className="p-4 animate-pulse">
           <div className="h-4 w-28 bg-gray-200 rounded mb-2" />
           <div className="h-4 w-3/4 bg-gray-200 rounded" />
@@ -40,7 +40,7 @@ export const DiaryDetailPage = () => {
 
   if (err || !diary) {
     return (
-      <PageShell title="감정일기">
+      <PageShell title="감정일기" mainScrollable mainClassName="px-4 py-3">
         <p className="text-sm">{err || "해당 날짜의 일기가 없습니다."}</p>
         <Link to="/diary" className="underline text-sm mt-2 inline-block">
           ← 목록으로
@@ -53,7 +53,7 @@ export const DiaryDetailPage = () => {
     (diary.createdAt && new Date(diary.createdAt).toLocaleDateString()) || date;
 
   return (
-    <PageShell title={dateLabel}>
+    <PageShell title={dateLabel} mainScrollable mainClassName="px-4 py-3">
       <Card className="p-4">
         <h2 className="font-medium">일기</h2>
         <p className="mt-2 whitespace-pre-wrap text-gray-800">
