@@ -15,4 +15,4 @@ function join(base, path) {
 export const AUTH_BASE = join(RAW_BASE, "/api/auth");
 export const CHAT_BASE = join(RAW_BASE, "/api/chat");
 export const CHATBOT_BASE = join(RAW_BASE, "/api/chatbot");
-export const DIARY_BASE = join(RAW_BASE, "/api/diary");
+export const DIARY_BASE = join(RAW_BASE, "/api/diaries");

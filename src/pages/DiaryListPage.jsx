@@ -100,7 +100,7 @@ export const DiaryListPage = () => {
 
         <ul className="space-y-2">
           {items.map((d) => {
-            const date = d.createdAt?.slice(0, 10);
+            const date = d.date || d.createdAt?.slice(0, 10);
             const preview =
               (d.content || "").length > 80
                 ? d.content.slice(0, 80) + "…"

@@ -49,20 +49,35 @@ export const DiaryDetailPage = () => {
     );
   }
 
-  const dateLabel =
-    (diary.createdAt && new Date(diary.createdAt).toLocaleDateString()) || date;
+  const dateLabel = diary.date || date;
+
+  // 대안 관점 텍스트 정규화(양끝 큰따옴표 제거)
+  const altRaw =
+    diary.reframed ?? diary?.metadata?.alternative_perspective ?? "";
+  const altText =
+    typeof altRaw === "string" ? altRaw.replace(/^"(.*)"$/, "$1") : "";
 
   return (
     <PageShell title={dateLabel} mainScrollable mainClassName="px-4 py-3">
-      <Card className="p-4">
-        <h2 className="font-medium">일기</h2>
-        <p className="mt-2 whitespace-pre-wrap text-gray-800">
-          {diary.content || "(내용 없음)"}
-        </p>
-        <Link to="/diary" className="underline text-sm mt-3 inline-block">
+      <div className="space-y-4">
+        <Card className="p-4">
+          <h2 className="font-medium">감정일기</h2>
+          <p className="mt-2 whitespace-pre-wrap text-gray-800">
+            {diary.content || "(내용 없음)"}
+          </p>
+        </Card>
+
+        {altText && (
+          <Card className="p-4">
+            <h3 className="font-medium">대안적 관점</h3>
+            <p className="mt-2 whitespace-pre-wrap text-gray-800">{altText}</p>
+          </Card>
+        )}
+
+        <Link to="/diary" className="underline text-sm mt-1 inline-block">
           ← 목록으로
         </Link>
-      </Card>
+      </div>
     </PageShell>
   );
 };
