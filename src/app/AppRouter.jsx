@@ -55,7 +55,7 @@ const router = createBrowserRouter([
               { path: "/", element: <ChatPage /> },
               { path: "/chat", element: <ChatPage /> },
               { path: "/diary", element: <DiaryListPage /> },
-              { path: "/diary/date/:id", element: <DiaryDetailPage /> },
+              { path: "/diary/date/:date", element: <DiaryDetailPage /> },
               { path: "/more", element: <MorePage /> },
             ],
           },
