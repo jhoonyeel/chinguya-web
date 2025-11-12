@@ -15,8 +15,7 @@ export const MorePage = () => {
   const raw = import.meta.env.VITE_APP_VERSION || "0.0.0";
   const version = raw.startsWith("v") ? raw : `v${raw}`;
 
-  const feedbackUrl =
-    "https://docs.google.com/forms/d/e/xxxxxxxxxxxxxx/viewform";
+  const feedbackUrl = "https://forms.gle/uxEuqHfakGfWBroG8";
 
   return (
     <div className="min-h-screen flex flex-col pb-16">
