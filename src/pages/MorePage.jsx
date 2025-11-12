@@ -3,9 +3,8 @@ import { useAuth } from "../shared/auth/AuthContext";
 
 // ✅ 현재 버전 변경사항 (배열 형태)
 const CURRENT_VERSION_NOTES = [
-  "PHQ-9 점검(필요 시 9문항)",
-  "주간 일기 조회(최근 N일) 및 날짜별 상세 보기",
-  "세션 종료 시 당일 일기 자동 생성 및 상세 화면 이동",
+  "자가 점검 추가",
+  "주간 일기 조회(최근 N일) 및 날짜별 상세 추가",
 ];
 
 export const MorePage = () => {
