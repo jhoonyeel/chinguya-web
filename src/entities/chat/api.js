@@ -1,5 +1,5 @@
 // src/entities/chat/api.js
-import { post } from "../../shared/api/http";
+import { get, post } from "../../shared/api/http";
 import { CHAT_BASE } from "../../shared/config/env";
 
 /** POST /api/chat/session/create */
@@ -17,4 +17,9 @@ export function apiSendMessage(payload) {
 export function apiEndSession(payload) {
   // payload: { session_id: string }
   return post(`${CHAT_BASE}/session/end`, payload);
+}
+
+/** GET /api/chat/session/{session_id}/history */
+export function apiGetHistory(session_id) {
+  return get(`${CHAT_BASE}/session/${session_id}/history`);
 }

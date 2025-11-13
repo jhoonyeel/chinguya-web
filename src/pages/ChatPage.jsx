@@ -1,37 +1,27 @@
-// src/pages/ChatPage.jsx  ← 교체(전용 레이아웃: 대화창 내부 스크롤 + 입력바 자체 패딩)
+// src/pages/ChatPage.jsx  ← 교체
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LS } from "../shared/lib/storage";
 import { chatService } from "../entities/chat/model";
 import { diaryService } from "../entities/diary/model";
 import { Button } from "../widgets/ui/ui";
 
 export const ChatPage = () => {
-  const [messages, setMessages] = useState(() =>
-    LS.get("chatMessages", [
-      {
-        role: "system",
-        text: "안녕하세요. 마음이 조금 힘들 땐, 함께 이야기 나누면 도움이 될 거예요. 오늘 어떤 일들이 있었나요? 편하게 들려주세요.",
-      },
-    ])
-  );
+  const [messages, setMessages] = useState([]); // 서버 히스토리 사용
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [sessionId, setSessionId] = useState(null);
   const nav = useNavigate();
 
-  useEffect(() => {
-    LS.set("chatMessages", messages);
-  }, [messages]);
-
+  // 세션 생성 → 히스토리 로드
   useEffect(() => {
     (async () => {
       try {
         const sid = await chatService.createSession();
         setSessionId(sid);
+        const history = await chatService.history(sid);
+        setMessages(history);
       } catch {
-        setMessages((prev) => [
-          ...prev,
+        setMessages([
           {
             role: "bot",
             text: "세션 생성에 실패했습니다. 다시 시도해 주세요.",
@@ -43,15 +33,15 @@ export const ChatPage = () => {
 
   const send = async () => {
     const text = input.trim();
-    if (!text || loading) return;
+    if (!text || loading || !sessionId) return;
+
     const next = [...messages, { role: "user", text }];
     setMessages(next);
     setInput("");
     setLoading(true);
+
     try {
-      const sid = sessionId ?? (await chatService.createSession());
-      if (!sessionId) setSessionId(sid);
-      const { answer } = await chatService.send(sid, text);
+      const { answer } = await chatService.send(sessionId, text);
       setMessages([
         ...next,
         { role: "bot", text: answer || "그럴 수 있어요. 말씀 감사합니다." },
@@ -66,6 +56,7 @@ export const ChatPage = () => {
     }
   };
 
+  // 소프트 재시도(최대 3회, 지수 백오프)
   const retry = async (fn, tries = 3, base = 250) => {
     let lastErr;
     for (let i = 0; i < tries; i++) {
@@ -84,12 +75,16 @@ export const ChatPage = () => {
     if (!sessionId || loading) return;
     setLoading(true);
     try {
-      await chatService.end(sessionId); // 리턴 무시
+      await chatService.end(sessionId); // 리턴은 사용 안 함
       const today = new Date().toISOString().slice(0, 10);
       await retry(() => diaryService.fetchByDate(today), 3, 250);
       nav(`/diary/date/${today}`, { replace: true });
+
+      // 새 대화를 위해 새로운 세션 생성 + 초기 히스토리 로드
       const sid = await chatService.createSession();
       setSessionId(sid);
+      const history = await chatService.history(sid);
+      setMessages(history);
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -146,7 +141,11 @@ export const ChatPage = () => {
               placeholder="메시지를 입력하세요"
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
             />
-            <Button onClick={send} disabled={loading} aria-label="메시지 전송">
+            <Button
+              onClick={send}
+              disabled={loading || !sessionId}
+              aria-label="메시지 전송"
+            >
               전송
             </Button>
             <Button
